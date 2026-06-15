@@ -5,12 +5,13 @@ import {
     increaseQuantity,
     decreaseQuantity,
 } from "../cart/cartSlice";
+
 import { useCheckoutMutation } from "../api/order.api";
 import { useNavigate } from "react-router-dom";
 import { isAuthenticated } from "../../../../utils/auth";
 import toast from "react-hot-toast";
 export default function CartPage() {
-    const [checkoutMutation] = useCheckoutMutation();
+    const [checkoutMutation, { isLoading }] = useCheckoutMutation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -21,113 +22,126 @@ export default function CartPage() {
         0
     );
     const handleCheckout = async () => {
-  const payload = items.map((i) => ({
-    productId: i.id,
-    quantity: i.quantity,
-  }));
+        if (items.length === 0) {
+            toast.error("Your cart is empty");
+            return;
+        }
 
-  try {
-    const res = await checkoutMutation(payload).unwrap();
+        const token = localStorage.getItem("token");
 
-    toast.success("Order placed successfully!");
-    console.log(res);
-  } catch (err: any) {
-    const status = err?.status;
+        if (!token) {
+            toast.error("You must log in to continue checkout");
 
-    if (status === 401) {
-      toast.error("You must log in to continue checkout");
+            setTimeout(() => {
+                navigate("/login");
+            }, 1200);
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 1200);
+            return;
+        }
 
-      return;
-    }
+        const payload = items.map((i) => ({
+            productId: i.id,
+            quantity: i.quantity,
+        }));
 
-    if (status === 403) {
-      toast.error("You are not allowed to perform this action");
-      return;
-    }
+        try {
+            const res = await checkoutMutation(payload).unwrap();
 
-    toast.error("Checkout failed. Please try again.");
-    console.error(err);
-  }
-};
-    // const handleCheckout = async () => {
-    //     const token = localStorage.getItem("token");
+            toast.success("Order placed successfully!");
 
-    //     if (!token) {
-    //         toast.error("You must login to continue checkout");
-    //         setTimeout(() => navigate("/login"), 1800);
-    //         return;
-    //     }
+            console.log(res);
 
-    //     try {
-    //         const payload = items.map((i) => ({
-    //             productId: i.id,
-    //             quantity: i.quantity,
-    //         }));
+            // optional: clear cart after success
+            items.forEach((item) => {
+                dispatch(removeFromCart(item.id));
+            });
 
-    //         await checkoutMutation(payload).unwrap();
+        } catch (err: any) {
+            const status = err?.status;
 
-    //         toast.success("Order placed successfully!");
-    //     } catch (err) {
-    //         console.error(err);
-    //         toast.error("Checkout failed");
-    //     }
-    // };
+            if (status === 401) {
+                toast.error("Session expired. Please log in again.");
+
+                setTimeout(() => {
+                    navigate("/login");
+                }, 1200);
+
+                return;
+            }
+
+            if (status === 403) {
+                toast.error("You are not allowed to perform this action");
+                return;
+            }
+
+            toast.error("Checkout failed. Please try again.");
+            console.error(err);
+        }
+    };
 
     return (
-  <div className="max-w-5xl mx-auto p-6 bg-white dark:bg-gray-950 text-black dark:text-white min-h-screen">
-    <h1 className="text-3xl font-bold mb-6">Shopping Cart</h1>
+        <div className="max-w-5xl mx-auto p-6 bg-white dark:bg-gray-950 text-black dark:text-white min-h-screen">
+            <h1 className="text-3xl font-bold mb-6">Shopping Cart</h1>
 
-    {items.length === 0 ? (
-      <p className="text-gray-600 dark:text-gray-300">Your cart is empty.</p>
-    ) : (
-      <>
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="border border-gray-200 dark:border-gray-800 rounded p-4 mb-4 flex gap-4 bg-white dark:bg-gray-900"
-          >
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-24 h-24 object-cover rounded"
-            />
+            {items.length === 0 ? (
+                <p className="text-gray-600 dark:text-gray-300">Your cart is empty.</p>
+            ) : (
+                <>
+                    {items.map((item) => (
+                        <div
+                            key={item.id}
+                            className="border border-gray-200 dark:border-gray-800 rounded p-4 mb-4 flex gap-4 bg-white dark:bg-gray-900"
+                        >
+                            <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-24 h-24 object-cover rounded"
+                            />
 
-            <div className="flex-1">
-              <h2 className="font-bold">{item.name}</h2>
-              <p className="text-gray-600 dark:text-gray-300">${item.price}</p>
+                            <div className="flex-1">
+                                <h2 className="font-bold">{item.name}</h2>
+                                <p className="text-gray-600 dark:text-gray-300">${item.price}</p>
 
-              <div className="flex gap-2 mt-2">
-                <button className="border border-gray-300 dark:border-gray-700 px-2 rounded">
-                  -
-                </button>
+                                <div className="flex gap-2 mt-2">
+                                    <button onClick={() => dispatch(decreaseQuantity(item.id))}
+                                    className="border border-gray-300 dark:border-gray-700 px-2 rounded">
+                                        -
+                                    </button>
 
-                <span>{item.quantity}</span>
+                                    <span>{item.quantity}</span>
 
-                <button className="border border-gray-300 dark:border-gray-700 px-2 rounded">
-                  +
-                </button>
-              </div>
-            </div>
+                                    <button
+                                    onClick={() => dispatch(increaseQuantity(item.id))}
+                                     className="border border-gray-300 dark:border-gray-700 px-2 rounded">
+                                        +
+                                    </button>
+                                </div>
+                            </div>
 
-            <button className="text-red-500">Remove</button>
-          </div>
-        ))}
+                            <button
+                             onClick={() => dispatch(removeFromCart(item.id))}
+                             className="text-red-500">Remove</button>
+                        </div>
+                    ))}
 
-        <div className="text-right mt-8">
-          <h2 className="text-2xl font-bold">
-            Total: ${total.toFixed(2)}
-          </h2>
-
-          <button className="mt-4 bg-black text-white dark:bg-white dark:text-black px-6 py-3 rounded">
-            Checkout
-          </button>
+                    <div className="text-right mt-8">
+                        <h2 className="text-2xl font-bold">
+                            Total: ${total.toFixed(2)}
+                        </h2>
+                        <button
+                            onClick={handleCheckout}
+                            disabled={isLoading || items.length === 0}
+                            className={`mt-4 px-6 py-3 rounded text-white dark:text-black 
+    ${isLoading || items.length === 0
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : "bg-black dark:bg-white"
+                                }`}
+                        >
+                            {isLoading ? "Processing..." : "Checkout"}
+                        </button>
+                    </div>
+                </>
+            )}
         </div>
-      </>
-    )}
-  </div>
-);
+    );
 }
