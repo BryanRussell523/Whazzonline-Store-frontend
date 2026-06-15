@@ -1,20 +1,54 @@
-<<<<<<< HEAD
-# Whazzonline-Store-frontend
-=======
-# React + Vite
+# Whazzonline Store (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern e-commerce frontend built with React, TypeScript, Redux Toolkit, RTK Query, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Product listing with search and category filtering
+- Product detail page
+- Shopping cart with quantity management
+- Cart persistence (redux-persist)
+- Authentication flow (login/register)
+- Protected checkout flow
+- Toast notifications
+- Dark / Light mode support
+- Responsive UI
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
+- React + TypeScript
+- Redux Toolkit + RTK Query
+- React Router
+- Tailwind CSS
+- redux-persist
+- React Hot Toast
+- Vite
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
->>>>>>> 318145e (chore: initial project structure and setup)
+## Installation
+
+```bash
+git clone https://github.com/BryanRussell523/Whazzonline-Store-frontend
+cd Whazzonline-Store-frontend
+npm install
+
+## Running the app
+npm run dev
+
+App runs on:
+
+http://localhost:5173
+
+Key limitations:
+1. No payment gateway integration yet
+2. Basic authentication (JWT only)
+3. No order history page yet
+4. Backend must be running for full functionality
+
+Future improvements:
+1. Stripe / Paystack integration
+2. User profile dashboard
+3. Admin product management panel
+4. Order tracking system
